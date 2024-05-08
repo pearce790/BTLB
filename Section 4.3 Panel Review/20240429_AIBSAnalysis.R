@@ -2,7 +2,6 @@
 source("20240429_source.R")
 load("Section 4.3 Panel Review/Data/AIBS_Clean.RData")
 
-
 ## Set Constants and Hyperparameters ####
 I <- nrow(rankings)
 J <- ncol(rankings)
@@ -14,7 +13,7 @@ lambda <- 2
 mu_0j <- rep(0,J)
 delta_theta <- c(10,0.5)
 
-### Priors
+## Priors ####
 library(fipp)
 set.seed(1)
 pmfstatic2 <- nClusters(Kplus=1:8,N=I,type="static",gamma=0.25,maxK=20)
@@ -70,7 +69,7 @@ mfmm_mcmc_K17 <- btlb_mfmm(rankings=rankings,ratings=ratings,M=M,K_start=I,init=
 save.image("Section 4.3 Panel Review/20240203_AIBSAnalysis.RData")
 # load("Section 4.3 Panel Review/20240203_AIBSAnalysis.RData")
 
-## Combine Chains ####
+## Combine Chains and Fixing Label-Switching ####
 n_iters <- nrow(mfmm_mcmc_K2$gamma)
 burn_prop <- 0.5
 keep_iters <- seq(n_iters*burn_prop+1,n_iters,by=10)
@@ -90,7 +89,6 @@ mfmm_mcmc <- list(gamma=matrix(c(mfmm_mcmc_K2$gamma[keep_iters,],mfmm_mcmc_K3$ga
                   loglik=rbind(mfmm_mcmc_K2$loglik_iters[keep_iters,],mfmm_mcmc_K3$loglik_iters[keep_iters,],mfmm_mcmc_K17$loglik_iters[keep_iters,]),
                   accept=rbind(mfmm_mcmc_K2$accept[keep_iters,],mfmm_mcmc_K3$accept[keep_iters,],mfmm_mcmc_K17$accept[keep_iters,]),
                   timing=rbind(mfmm_mcmc_K2$timing[keep_iters,],mfmm_mcmc_K3$timing[keep_iters,],mfmm_mcmc_K17$timing[keep_iters,]))
-
 
 
 ## MH Diagnostics and Timings ####
