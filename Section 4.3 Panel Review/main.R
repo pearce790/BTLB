@@ -56,21 +56,21 @@ mfmm_mcmc$K <- rbind(mfmm_mcmc$K,mfmm_mcmc_K3$K,mfmm_mcmc_K17$K)[keep_iters,,dro
 mfmm_mcmc$loglik <- rbind(mfmm_mcmc$loglik,mfmm_mcmc_K3$loglik,mfmm_mcmc_K17$loglik)[keep_iters,,drop=FALSE]
 mfmm_mcmc$accept <- rbind(mfmm_mcmc$accept,mfmm_mcmc_K3$accept,mfmm_mcmc_K17$accept)[keep_iters,,drop=FALSE]
 mfmm_mcmc$timing <- rbind(mfmm_mcmc$timing,mfmm_mcmc_K3$timing,mfmm_mcmc_K17$timing)[keep_iters,,drop=FALSE]
-mfmm_mcmc$alpha <- rbind(cbind(mfmm_mcmc_K2$alpha,matrix(NA,nrow=10000,ncol=17-10)),
+mfmm_mcmc$alpha <- rbind(cbind(mfmm_mcmc_K2$alpha,matrix(NA,nrow=10000,ncol=17-9)),
                          cbind(mfmm_mcmc_K3$alpha,matrix(NA,nrow=10000,ncol=17-9)),
                          mfmm_mcmc_K17$alpha)[keep_iters,,drop=FALSE]
-mfmm_mcmc$theta <- rbind(cbind(mfmm_mcmc_K2$theta,matrix(NA,nrow=10000,ncol=17-10)),
+mfmm_mcmc$theta <- rbind(cbind(mfmm_mcmc_K2$theta,matrix(NA,nrow=10000,ncol=17-9)),
                          cbind(mfmm_mcmc_K3$theta,matrix(NA,nrow=10000,ncol=17-9)),
                          mfmm_mcmc_K17$theta)[keep_iters,,drop=FALSE]
-mfmm_mcmc$mu <- abind(abind(mfmm_mcmc_K2$mu,array(NA,dim=c(25,17-10,10000)),along=2),
+mfmm_mcmc$mu <- abind(abind(mfmm_mcmc_K2$mu,array(NA,dim=c(25,17-9,10000)),along=2),
                       abind(mfmm_mcmc_K3$mu,array(NA,dim=c(25,17-9,10000)),along=2),
                       mfmm_mcmc_K17$mu)[,,keep_iters,drop=FALSE]
-mfmm_mcmc$class <- abind(abind(mfmm_mcmc_K2$class,array(0,dim=c(10000,17,17-10)),along=3),
+mfmm_mcmc$class <- abind(abind(mfmm_mcmc_K2$class,array(0,dim=c(10000,17,17-9)),along=3),
                          abind(mfmm_mcmc_K3$class,array(0,dim=c(10000,17,17-9)),along=3),
                          mfmm_mcmc_K17$class,along=1)[keep_iters,,,drop=FALSE]
 mfmm_mcmc <- stephens_labelswitching(mfmm_mcmc,burn_prop = 0,thin=1) # fix label switching in combined chain
-mfmm_mcmc$class <- NULL # saving space!
-rm(mfmm_mcmc_K2,mfmm_mcmc_K3,mfmm_mcmc_K17) # saving space!
+# mfmm_mcmc$class <- NULL # saving space!
+# rm(mfmm_mcmc_K2,mfmm_mcmc_K3,mfmm_mcmc_K17) # saving space!
 
 
 #### Figures ####
@@ -101,8 +101,8 @@ plotK<-ggplot(data.frame(clusters=mfmm_mcmc$K[,1]),aes(x=clusters))+geom_bar()+
   scale_y_continuous(breaks=seq(0,nrow(mfmm_mcmc$K),length=5),labels=seq(0,1,length=5))
 plotZ<-ggplot(melt(mfmm_mcmc$Z),
                 aes(x=factor(Var2),
-                    fill=factor(value,levels=c(1:6),labels=1:6),
-                    color=factor(value,levels=c(1:6),labels=1:6)))+
+                    fill=factor(value,levels=c(2,1,3,4,5,7),labels=c(1,2,3,4,5,6)),
+                    color=factor(value,levels=c(2:1,3,4,5,7),labels=c(1,2,3,4,5,6))))+
   geom_bar()+theme_minimal()+
   labs(x="Judges",y="Proportion",fill="Class",color="Class")+
   scale_y_continuous(breaks=seq(0,nrow(mfmm_mcmc$Z),length=5),labels=seq(0,1,length=5))+
@@ -110,8 +110,8 @@ plotZ<-ggplot(melt(mfmm_mcmc$Z),
   scale_color_manual(values=colors)+
   theme(panel.grid = element_blank(),legend.position = "bottom",
         axis.ticks.x = element_blank(),axis.ticks.y=element_line())
-plot_mu<-ggplot(melt(mfmm_mcmc$mu[,1:2,]),
-                aes(x=factor(Var1,levels=order(apply(mfmm_mcmc$mu[,1,],1,median))),
+plot_mu<-ggplot(melt(mfmm_mcmc$mu[,2:1,]),
+                aes(x=factor(Var1,levels=order(apply(mfmm_mcmc$mu[,2,],1,median))),
                     y=value,color=factor(Var2),fill=factor(Var2)))+
   geom_violin()+theme_bw()+
   scale_fill_manual(values=colors)+
@@ -120,7 +120,7 @@ plot_mu<-ggplot(melt(mfmm_mcmc$mu[,1:2,]),
   labs(x="Proposal",y=expression(mu[j]),fill="Cluster",color="Cluster")+
   theme(panel.grid.minor = element_blank(),panel.grid.major.x = element_blank(),
         legend.position = "bottom")
-plot_theta<-ggplot(melt(mfmm_mcmc$theta[,1:2]),
+plot_theta<-ggplot(melt(mfmm_mcmc$theta[,2:1]),
                    aes(x=factor(Var2),y=value,color=factor(Var2),fill=factor(Var2)))+
   geom_violin()+theme_bw()+
   scale_fill_manual(values=colors)+
@@ -136,7 +136,7 @@ plot1 <- grid.arrange(
 ggsave("ResultsPlots/Fig5.png",plot1,width=12,height=5,units="in")
 
 ## Main Paper Figure 6 ####
-class <- data.frame(Var2=1:I,pred_class=round(apply(mfmm_mcmc$Z,2,median)))
+class <- data.frame(Var2=1:I,pred_class=3-round(apply(mfmm_mcmc$Z,2,median)))
 nu_long <- melt(mfmm_mcmc$nu) %>% left_join(class,by="Var2")
 plot_nu<-ggplot(nu_long,aes(y=factor(Var2,levels=order(apply(mfmm_mcmc$nu,2,median))),x=value,
                             fill=factor(pred_class)))+
@@ -219,7 +219,7 @@ gres_nu <- ggplot(data.frame(sigma2_mu=mfmm_mcmc$sigma2[,2]),aes(x=1,y=sigma2_mu
   labs(x="",title=expression(sigma[nu]^2),y=element_blank())+
   theme(legend.position = "bottom",panel.grid.minor = element_blank(),panel.grid.major.x = element_blank(),
         axis.ticks.x = element_blank(),axis.text.x = element_blank())
-gres_alpha <- ggplot(melt(mfmm_mcmc$alpha[,1:4]),aes(x=factor(Var2),y=value))+
+gres_alpha <- ggplot(melt(mfmm_mcmc$alpha[,c(2,1,3,4)]),aes(x=factor(Var2),y=value))+
   geom_boxplot(outlier.alpha=0.01)+theme_bw()+
   labs(x="Class",y=element_blank(),title=expression(alpha))+
   theme(panel.grid.minor = element_blank(),panel.grid.major.x = element_blank())
@@ -331,7 +331,7 @@ traceK<-ggplot(melt_K,aes(Var1,value,color=factor(Var2,levels=c("K","Kplus"),lab
   labs(x="Iteration",y="Value",color="",title="Trace Plot: K, K+")+
   theme(legend.position = "right",panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank())
-tracealpha<-ggplot(melt(mfmm_mcmc$alpha[,1:5]),aes(Var1,value,color=factor(Var2)))+
+tracealpha<-ggplot(melt(mfmm_mcmc$alpha[,c(2,1,3:6)]),aes(Var1,value,color=factor(Var2)))+
   geom_line()+theme_bw()+
   scale_color_manual(values=colors)+
   scale_x_continuous(breaks=seq(0,12000,by=2000))+
@@ -354,7 +354,7 @@ tracegamma<-ggplot(melt(mfmm_mcmc$gamma),aes(Var1,value))+
   theme(legend.position = "right",panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank())
 AIBS_trace1<-grid.arrange(tracegamma,tracesigma,tracealpha,traceK)
-AIBS_trace2<-ggplot(melt(mfmm_mcmc$theta[,1:2]),aes(x=Var1,color=factor(Var2),y=value))+
+AIBS_trace2<-ggplot(melt(mfmm_mcmc$theta[,2:1]),aes(x=Var1,color=factor(Var2),y=value))+
   geom_line(alpha=c(rep(1,12000),rep(.5,12000)))+theme_bw()+
   scale_color_manual(values=colors)+
   scale_x_continuous(breaks=seq(0,12000,by=2000))+
@@ -363,7 +363,7 @@ AIBS_trace3 <- grid.arrange(AIBS_trace1,AIBS_trace2,nrow=2,heights=c(.667,.333))
 ggsave("ResultsPlots/Appendix_Fig7.png",AIBS_trace3,width=10,height=7.5,units="in") 
 
 ## Appendix Figure 8 ####
-AIBS_trace1<-ggplot(melt(mfmm_mcmc$mu[,1:2,seq(1,12000,by=10)]),aes(x=Var3,color=factor(Var2),y=value))+
+AIBS_trace1<-ggplot(melt(mfmm_mcmc$mu[,2:1,seq(1,12000,by=10)]),aes(x=Var3,color=factor(Var2),y=value))+
   geom_line(alpha=0.8)+theme_bw()+
   scale_x_continuous(breaks=seq(0,1200,by=300))+
   scale_color_manual(values=colors)+
